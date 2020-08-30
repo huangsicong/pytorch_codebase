@@ -4,7 +4,7 @@ The codebase template used in the ICML paper: Evaluating Lossy Compression Rates
 **Author**: [Sicong Huang](https://www.cs.toronto.edu/~huang/), [Alireza Makhzani*](http://www.alireza.ai/), [Yanshuai Cao
 ](http://www.cs.toronto.edu/~g8acai/index.html), [Roger Grosse](https://www.cs.toronto.edu/~rgrosse/) (*Equal contribution)
 
-The Full codebase can be found here: [git@github.com:huangsicong/rate_distortion.git](git@github.com:huangsicong/rate_distortion.git)
+The Full codebase can be found here: [https://github.com/huangsicong/rate_distortion](https://github.com/huangsicong/rate_distortion)
 
 ## Citing this work
 ```
