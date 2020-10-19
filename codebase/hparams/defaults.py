@@ -59,9 +59,9 @@ def defualt_decoder():
 
 def default_experiment():
     Hparam = hp(
-        output_root_dir="/scratch/ssd001/home/huang/workspaces/2020/ood",
-        checkpoint_root_dir="/scratch/ssd001/home/huang/workspaces/2020/ood",
-        data_dir="/scratch/ssd001/home/huang/workspaces/2020/ood/datasets",
+        output_root_dir="./runoutputs",
+        checkpoint_root_dir="./runoutputs",
+        data_dir="./datasets",
         dataset=mnist(),
         cuda=True,
         verbose=True,

@@ -38,6 +38,8 @@ def vae_experiment():
 def vae2_rd():
     Hparam = vae_experiment()
     Hparam.train_first = True
+    Hparam.cuda = True
+    Hparam.model_train.epochs = 10 
     Hparam.model_train.z_size = 2
     Hparam.load_hparam_name = "vae2_template_test"
     return Hparam

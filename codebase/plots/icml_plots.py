@@ -16,7 +16,7 @@ def default_style():
 
     return hp(
         verbose=True,
-        output_root_dir="/scratch/ssd001/home/huang/workspaces/2020/ood",
+        output_root_dir="./runoutputs",
         data="test",
         legend_loc='upper right',
         legend_mode=None,

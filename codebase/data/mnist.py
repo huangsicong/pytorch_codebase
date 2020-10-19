@@ -17,37 +17,66 @@ from ..utils.experiment_utils import note_taking
 
 
 def init_new_mnist(batch_size,
-                   data_dir,
+                   hparams,
                    train=False,
                    shuffle=False,
                    data="MNIST",
                    cuda=True):
     kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
-    loader = torch.utils.data.DataLoader(
-        datasets.MNIST(
-            data_dir,
-            train=train,
-            download=True,
-            transform=transforms.ToTensor()),
-        batch_size=batch_size,
-        shuffle=(True if shuffle else False),
-        **kwargs)
+    if hparams.dataset.input_dims[1] != 28:
+        loader = torch.utils.data.DataLoader(
+            datasets.MNIST(
+                hparams.data_dir,
+                train=train,
+                download=True,
+                transform=transforms.Compose((transforms.Resize(
+                    (hparams.dataset.input_dims[1],
+                     hparams.dataset.input_dims[2])), transforms.ToTensor()))),
+            batch_size=batch_size,
+            shuffle=(True if shuffle else False),
+            **kwargs)
+    else:
+        loader = torch.utils.data.DataLoader(
+            datasets.MNIST(
+                hparams.data_dir,
+                train=train,
+                download=True,
+                transform=transforms.ToTensor()),
+            batch_size=batch_size,
+            shuffle=(True if shuffle else False),
+            **kwargs)
     return loader
 
 
 @register("mnist_train_valid")
 def mnist_train_valid(batch_size, hparams):
     kwargs = {'num_workers': 1, 'pin_memory': True} if hparams.cuda else {}
-    train_dataset = datasets.MNIST(
-        hparams.data_dir,
-        train=True,
-        download=True,
-        transform=transforms.ToTensor())
-    valid_dataset = datasets.MNIST(
-        hparams.data_dir,
-        train=True,
-        download=True,
-        transform=transforms.ToTensor())
+    if hparams.dataset.input_dims[1] != 28:
+        train_dataset = datasets.MNIST(
+            hparams.data_dir,
+            train=True,
+            download=True,
+            transform=transforms.Compose((transforms.Resize(
+                (hparams.dataset.input_dims[1], hparams.dataset.input_dims[2])),
+                                          transforms.ToTensor())))
+        valid_dataset = datasets.MNIST(
+            hparams.data_dir,
+            train=True,
+            download=True,
+            transform=transforms.Compose((transforms.Resize(
+                (hparams.dataset.input_dims[1], hparams.dataset.input_dims[2])),
+                                          transforms.ToTensor())))
+    else:
+        train_dataset = datasets.MNIST(
+            hparams.data_dir,
+            train=True,
+            download=True,
+            transform=transforms.ToTensor())
+        valid_dataset = datasets.MNIST(
+            hparams.data_dir,
+            train=True,
+            download=True,
+            transform=transforms.ToTensor())
     num_train = len(train_dataset)
     indices = list(range(num_train))
     split = 10000
@@ -69,7 +98,7 @@ def mnist_train_valid(batch_size, hparams):
 def mnist_eval_train(batch_size, hparams):
     return init_new_mnist(
         batch_size,
-        hparams.data_dir,
+        hparams,
         train=True,
         shuffle=False,
         data="MNIST",
@@ -86,7 +115,7 @@ def mnist_test(batch_size, hparams):
     if hparams.dataset.label is None:
         return init_new_mnist(
             batch_size,
-            hparams.data_dir,
+            hparams,
             train=False,
             shuffle=False,
             data="MNIST",
@@ -94,7 +123,7 @@ def mnist_test(batch_size, hparams):
     else:
         full_test_loader = init_new_mnist(
             batch_size,
-            hparams.data_dir,
+            hparams,
             train=False,
             shuffle=False,
             data="MNIST",
@@ -134,7 +163,7 @@ def mnist_test(batch_size, hparams):
     if hparams.dataset.label is None:
         return init_new_mnist(
             batch_size,
-            hparams.data_dir,
+            hparams,
             train=False,
             shuffle=True,
             data="MNIST",
@@ -142,7 +171,7 @@ def mnist_test(batch_size, hparams):
     else:
         full_test_loader = init_new_mnist(
             batch_size,
-            hparams.data_dir,
+            hparams,
             train=False,
             shuffle=True,
             data="MNIST",

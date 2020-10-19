@@ -23,7 +23,6 @@ import argparse
 import random
 import sys
 from .utils.vae_utils import prepare_vae
-from .utils.gan_utils import gan_bridge
 from .utils.aae_utils import aae_bridge
 
 sys.stdout.flush()

@@ -173,3 +173,5 @@ rate_distortion/\.vscode/
 */gans/data/
 */gans/logs
 */gans/slurm_job_tool_release/
+datasets/
+runoutputs/

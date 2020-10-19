@@ -45,6 +45,14 @@ def compute_duration(start, end):
     hour_summery = 24 * days + hours + minutes / 60.
     return hour_summery
 
+def get_cpu_type(hparams):
+    if hparams.cuda and torch.cuda.is_available():
+        if hparams.double_precision:
+            return torch.DoubleTensor
+        else:
+            return torch.FloatTensor
+    else:
+        return hparams.dtype
 
 def set_random_seed(i):
     random.seed(i)

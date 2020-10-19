@@ -9,18 +9,19 @@
 
 import torch
 import numpy as np
-from ..utils.experiment_utils import note_taking, save_checkpoint, sample_images, get_chechpoint_path, load_checkpoint
+from ..utils.experiment_utils import note_taking, save_checkpoint, sample_images, get_chechpoint_path, load_checkpoint, get_cpu_type
 from torchvision.utils import save_image
 from ..data.load_data import load_training_data
 from tqdm import tqdm
 import os
 
-
 def train_epoch(epoch, model, train_loader, hparams, optimizer, task_params):
     model.train()
     train_loss = 0
+    torch.set_default_tensor_type(get_cpu_type(hparams))
     for batch_idx, (data, _) in enumerate(train_loader, 1):
         data = data.to(device=hparams.device, dtype=hparams.tensor_type)
+        torch.set_default_tensor_type(hparams.dtype)
         optimizer.zero_grad()
         _, elbo, _, _, _, _, _ = model(data)
         loss = -elbo
@@ -28,6 +29,7 @@ def train_epoch(epoch, model, train_loader, hparams, optimizer, task_params):
         train_loss += loss.item()
         optimizer.step()
 
+    torch.set_default_tensor_type(hparams.dtype)
     note_taking(
         'Training epoch: {} Average negative elbo on train set: {}'.format(
             epoch, train_loss / batch_idx))
@@ -49,8 +51,10 @@ def test_epoch(epoch,
     model.eval()
     elbos = list()
     with torch.no_grad():
+        torch.set_default_tensor_type(get_cpu_type(hparams))
         for i, (data, _) in enumerate(test_loader, 1):
             data = data.to(device=hparams.device, dtype=hparams.tensor_type)
+            torch.set_default_tensor_type(hparams.dtype)
             recon_batch, elbo, _, _, _, _, _ = model(data)
             elbos.append(elbo.cpu().numpy().item())
             if do_logging:
@@ -75,6 +79,7 @@ def test_epoch(epoch,
             if i == hparams.n_test_batch:
                 break
 
+    torch.set_default_tensor_type(hparams.dtype)
     test_loss = -np.mean(elbos)
     note_taking('Test loss: {} over {} batches'.format(test_loss, float(i)))
     return test_loss
@@ -82,7 +87,6 @@ def test_epoch(epoch,
 
 def train_and_test(test_loss_list, model, optimizer, writer, hparams):
     train_loader, test_loader = load_training_data(hparams)
-
     for epoch in tqdm(range(hparams.epoch, hparams.model_train.epochs + 1)):
         train_loss, steps = train_epoch(epoch, model, train_loader, hparams,
                                         optimizer, hparams.model_train)
