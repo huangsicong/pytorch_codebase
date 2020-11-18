@@ -1,12 +1,16 @@
 # Byte-compiled / optimized / DLL files
+*__pycache__/
 __pycache__/
 *.py[cod]
 *$py.class
 
 # vs code
-.vscode/
+*.vscode/
 settings.json
+*settings.json
 
+# sbatch old
+*.old
 
 # C extensions
 *.so
@@ -159,8 +163,8 @@ Thumbs.db
 ######################
 *.png
 *.pdf
-
-rate_distortion/\.vscode/
+*.jpg
+*.jpeg
 
 
 ############ gans/

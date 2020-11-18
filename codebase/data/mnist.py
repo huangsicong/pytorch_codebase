@@ -50,7 +50,7 @@ def init_new_mnist(batch_size,
 
 @register("mnist_train_valid")
 def mnist_train_valid(batch_size, hparams):
-    kwargs = {'num_workers': 1, 'pin_memory': True} if hparams.cuda else {}
+    kwargs = {'num_workers': 4, 'pin_memory': True} if hparams.cuda else {}
     if hparams.dataset.input_dims[1] != 28:
         train_dataset = datasets.MNIST(
             hparams.data_dir,
@@ -154,11 +154,11 @@ def mnist_test(batch_size, hparams):
         return [(target_data, hparams.dataset.label)]
 
 
-@register("mnist_test_rand")
+@register("mnist_test_single_class")
 def mnist_test(batch_size, hparams):
     """ 
     This loader is for evaluating RD. It supports loading only a particular digit class, 
-    by spesifying hparams.dataset.label.
+    by specifying hparams.dataset.label.
      """
     if hparams.dataset.label is None:
         return init_new_mnist(

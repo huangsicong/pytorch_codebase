@@ -26,3 +26,11 @@ def get_model(hparams):
 
 def get_cnn_model(hparams):
     return _MODEL[hparams.cnn_model_name](hparams)
+
+
+def get_encoder(hparams):
+    return _MODEL[hparams.encoder_name](hparams)
+
+
+def get_decoder(hparams):
+    return _MODEL[hparams.decoder_name](hparams)

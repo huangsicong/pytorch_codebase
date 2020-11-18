@@ -19,7 +19,6 @@ def vae_experiment():
     Hparam = default_experiment()
     Hparam.model_name = "deep_vae"
     Hparam.chkt_step = -2  #-2 means take the best, -1 means take the latest
-    Hparam.train_print_freq = 100
     Hparam.start_checkpointing = 0
     Hparam.checkpointing_freq = 100
     Hparam.learning_rate = 1e-4
@@ -27,19 +26,51 @@ def vae_experiment():
     Hparam.n_test_batch = 10
     Hparam.original_experiment = True
     Hparam.model_name = "deep_vae"
-    Hparam.group_list = ["icml", "VAEs", "RD"]
+    Hparam.train_print_freq = 50
     return Hparam
 
 
-# ----------------------------------------------------------------------------
-# rd
-# ----------------------------------------------------------------------------
-@register("vae2_template_test")
-def vae2_rd():
+def dcvae_experiment():
     Hparam = vae_experiment()
-    Hparam.train_first = True
-    Hparam.cuda = True
-    Hparam.model_train.epochs = 10 
-    Hparam.model_train.z_size = 2
-    Hparam.load_hparam_name = "vae2_template_test"
+    Hparam.conv_params = conv_params()
+    Hparam.learning_rate = 3e-4
+    Hparam.weight_decay = 3e-5
+    Hparam.model_train.batch_size = 128
+    Hparam.model_train.epochs = 200
+    Hparam.model_train.z_size = 100
+    Hparam.model_name = "dc_vae"
+    Hparam.gauss_weight_init = True
+    Hparam.encoder_name = "conv_encoder"
+    Hparam.decoder_name = "conv_decoder"
+    return Hparam
+
+
+@register("dcvae100_mnist")
+def dcvae():
+    Hparam = dcvae_experiment()
+    Hparam.dataset.normalize = None
+    Hparam.dataset.input_dims = (1, 32, 32)
+    Hparam.dataset.keep_scale = False
+    return Hparam
+
+
+@register("dcvae100_fmnist")
+def dcvae():
+    Hparam = dcvae_experiment()
+    Hparam.dataset = FashionMNIST()
+    Hparam.dataset.input_dims = (1, 32, 32)
+    Hparam.dataset.normalize = None
+    Hparam.dataset.keep_scale = False
+    return Hparam
+
+
+@register("dcvae100_cifar")
+def dcvae():
+    Hparam = dcvae_experiment()
+    Hparam.dataset = cifar10()  #this also sets dim to (3,32,32)
+    Hparam.dataset.input_dims = (3, 32, 32)
+    Hparam.dataset.normalize = None
+    Hparam.conv_params.nf = 64
+    Hparam.conv_params.nc = 3
+    Hparam.dataset.keep_scale = False
     return Hparam

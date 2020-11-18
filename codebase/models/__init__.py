@@ -12,9 +12,13 @@ __all__ = [
     "vaes",
     "aae",
     "gans",
+    "Encoders",
+    "Decoder",
     "user_models",
 ]
 from .cnns import *
+from .Encoders import *
+from .Decoder import *
 from .vaes import *
 from .aae import *
 from .gans import *

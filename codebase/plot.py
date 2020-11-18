@@ -7,6 +7,8 @@
 
 #!/usr/bin/env python3
 
+""" An example script of how to put results in multiple experiments together """
+
 from __future__ import absolute_import, division, print_function
 import matplotlib
 matplotlib.use('Agg')
@@ -31,6 +33,7 @@ matplotlib.rcParams['ps.fonttype'] = 42
 sys.stdout.flush()
 parser = argparse.ArgumentParser()
 parser.add_argument("--hparam_set", default="default", type=str)
+parser.add_argument("--overwrite", default=False, type=bool)
 parser.add_argument("--e_name")
 args = parser.parse_args()
 plot_params = get_plots(args.hparam_set)
@@ -65,15 +68,11 @@ def initialze_plots(plot_params, args):
         format='%(message)s')
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    try:
-        git_label = subprocess.check_output(
-            ["cd " + dir_path + " && git describe --always && cd .."],
-            shell=True).strip()
-        if plot_params.verbose:
-            note_taking("The git label is {}".format(git_label))
-    except:
-        note_taking("WARNING! Encountered unknwon error recording git label...")
-
+    git_label = subprocess.check_output(
+        ["cd " + dir_path + " && git describe --always && cd .."],
+        shell=True).strip()
+    if plot_params.verbose:
+        note_taking("The git label is {}".format(git_label))
     if plot_params.verbose:
         print_hparams(plot_params.to_dict(), None)
     plot_params.plot_dir = plot_dir

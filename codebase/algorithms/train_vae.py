@@ -15,6 +15,7 @@ from ..data.load_data import load_training_data
 from tqdm import tqdm
 import os
 
+
 def train_epoch(epoch, model, train_loader, hparams, optimizer, task_params):
     model.train()
     train_loss = 0
@@ -60,7 +61,7 @@ def test_epoch(epoch,
             if do_logging:
                 if epoch is not None:
                     if i == 1:
-                        if hparams.dataset.data_name == "cifar10":
+                        if hparams.dataset.data_name == "cifar10" and hparams.dataset.keep_scale is None:
                             recon_batch = recon_batch / 2 + 0.5
                         n = min(data.size(0), 8)
                         comparison = torch.cat([

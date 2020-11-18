@@ -43,7 +43,7 @@ def init_new_CIFAR10_loader(batch_size,
 
 @register("cifar_train_valid")
 def cifar_train_valid(batch_size, hparams):
-    kwargs = {'num_workers': 1, 'pin_memory': True} if hparams.cuda else {}
+    kwargs = {'num_workers': 4, 'pin_memory': True} if hparams.cuda else {}
 
     if hparams.dataset.normalize is not None:
         transform = transforms.Compose([

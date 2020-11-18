@@ -10,7 +10,7 @@ from ..utils.experiment_utils import note_taking
 
 
 def init_new_FashionMNIST(batch_size,
-                          data_dir,
+                          hparams,
                           train=False,
                           shuffle=False,
                           data="FashionMNIST",
@@ -18,10 +18,12 @@ def init_new_FashionMNIST(batch_size,
     kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
     loader = torch.utils.data.DataLoader(
         datasets.FashionMNIST(
-            data_dir,
+            hparams.data_dir,
             train=train,
             download=True,
-            transform=transforms.ToTensor()),
+            transform=transforms.Compose((transforms.Resize(
+                (hparams.dataset.input_dims[1], hparams.dataset.input_dims[2])),
+                                          transforms.ToTensor()))),
         batch_size=batch_size,
         shuffle=(True if shuffle else False),
         **kwargs)
@@ -30,17 +32,21 @@ def init_new_FashionMNIST(batch_size,
 
 @register("FashionMNIST_train_valid")
 def FashionMNIST_train_valid(batch_size, hparams):
-    kwargs = {'num_workers': 1, 'pin_memory': True} if hparams.cuda else {}
+    kwargs = {'num_workers': 4, 'pin_memory': True} if hparams.cuda else {}
     train_dataset = datasets.FashionMNIST(
         hparams.data_dir,
         train=True,
         download=True,
-        transform=transforms.ToTensor())
+        transform=transforms.Compose((transforms.Resize(
+            (hparams.dataset.input_dims[1], hparams.dataset.input_dims[2])),
+                                      transforms.ToTensor())))
     valid_dataset = datasets.FashionMNIST(
         hparams.data_dir,
         train=True,
         download=True,
-        transform=transforms.ToTensor())
+        transform=transforms.Compose((transforms.Resize(
+            (hparams.dataset.input_dims[1], hparams.dataset.input_dims[2])),
+                                      transforms.ToTensor())))
     num_train = len(train_dataset)
     indices = list(range(num_train))
     split = 10000
@@ -62,7 +68,7 @@ def FashionMNIST_train_valid(batch_size, hparams):
 def FashionMNIST_eval_train(batch_size, hparams):
     return init_new_FashionMNIST(
         batch_size,
-        hparams.data_dir,
+        hparams,
         train=True,
         shuffle=False,
         data="FashionMNIST",
@@ -79,7 +85,7 @@ def FashionMNIST_test(batch_size, hparams):
     if hparams.dataset.label is None:
         return init_new_FashionMNIST(
             batch_size,
-            hparams.data_dir,
+            hparams,
             train=False,
             shuffle=False,
             data="FashionMNIST",
@@ -87,7 +93,7 @@ def FashionMNIST_test(batch_size, hparams):
     else:
         full_test_loader = init_new_FashionMNIST(
             batch_size,
-            hparams.data_dir,
+            hparams,
             train=False,
             shuffle=False,
             data="FashionMNIST",
@@ -118,16 +124,16 @@ def FashionMNIST_test(batch_size, hparams):
         return [(target_data, hparams.dataset.label)]
 
 
-@register("FashionMNIST_test_rand")
+@register("FashionMNIST_test_single_class")
 def FashionMNIST_test(batch_size, hparams):
     """ 
     This loader is for evaluating RD. It supports loading only a particular digit class, 
-    by spesifying hparams.dataset.label.
+    by specifying hparams.dataset.label.
      """
     if hparams.dataset.label is None:
         return init_new_FashionMNIST(
             batch_size,
-            hparams.data_dir,
+            hparams,
             train=False,
             shuffle=True,
             data="FashionMNIST",
@@ -135,7 +141,7 @@ def FashionMNIST_test(batch_size, hparams):
     else:
         full_test_loader = init_new_FashionMNIST(
             batch_size,
-            hparams.data_dir,
+            hparams,
             train=False,
             shuffle=True,
             data="FashionMNIST",

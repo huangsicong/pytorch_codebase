@@ -48,6 +48,13 @@ def cifar10():
         normalize=[0.5, 0.5])
 
 
+def conv_params():
+    """
+        Conv params for DCVAE
+    """
+    return hp(nc=1, nf=32)
+
+
 def defualt_decoder():
     """ model_train """
     return hp(

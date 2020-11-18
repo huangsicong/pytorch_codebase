@@ -23,6 +23,7 @@ import random
 import logging as python_log
 from tensorboardX import SummaryWriter
 import copy
+import shutil
 from torchvision.utils import save_image
 from ..hparams.registry import get_hparams
 from ..models.registry import get_model
@@ -45,6 +46,7 @@ def compute_duration(start, end):
     hour_summery = 24 * days + hours + minutes / 60.
     return hour_summery
 
+
 def get_cpu_type(hparams):
     if hparams.cuda and torch.cuda.is_available():
         if hparams.double_precision:
@@ -53,6 +55,7 @@ def get_cpu_type(hparams):
             return torch.FloatTensor
     else:
         return hparams.dtype
+
 
 def set_random_seed(i):
     random.seed(i)
@@ -148,11 +151,32 @@ def logging(args_dict, hparams_dict, log_dir, dir_path, stage="init"):
         file.close()
 
 
-def init_dir(dir):
+def init_dir(dir, overwrite=False):
+    if os.path.exists(dir) and overwrite:
+        shutil.rmtree(dir)
     if not os.path.exists(dir):
         print("Initializing directory: {}".format(dir))
         os.makedirs(dir, 0o777)
         os.chmod(dir, 0o777)
+
+
+def save_recon(data, recon, hparams, model, epoch, best=False):
+    recon = recon.detach()
+    if hparams.dataset.keep_scale is None:
+        recon = recon / 2 + 0.5
+        note_taking("...cifar generation re-normalized and saved. ")
+    n = min(data.size(0), 8)
+    comparison = torch.cat([
+        data[:n],
+        recon.view(
+            recon.size(0), hparams.dataset.input_dims[0],
+            hparams.dataset.input_dims[1], hparams.dataset.input_dims[2])[:n]
+    ])
+    save_image(
+        comparison.cpu(),
+        hparams.messenger.image_dir +
+        ('best_' if best else '') + 'reconstruction_' + str(epoch) + '.png',
+        nrow=n)
 
 
 def sample_images(hparams,
@@ -167,15 +191,20 @@ def sample_images(hparams,
             device=hparams.device, dtype=hparams.tensor_type)
     else:
         sample = sample_z
-    sample, x_logvar = model.decode(sample)
+    train_bool = model.training
+    model.eval()
+    with torch.no_grad():
+        sample, x_logvar = model.decode(sample)
+    model.train(train_bool)
     sample = sample.cpu()
     save_name = hparams.messenger.image_dir + (
-        'best_' if best else
-        '') + 'sample' + (str(epoch) if epoch is not None else '') + (
-            ("_" + name) if name is not None else '')
+        'best_' if best else '') + 'sample' + (str(epoch)
+                                               if epoch is not None else '') + (
+                                                   ("_" + name)
+                                                   if name is not None else '')
     image_path = save_name + '.png'
 
-    if hparams.dataset.data_name == "cifar10":
+    if hparams.dataset.keep_scale is None:
         sample = sample / 2 + 0.5
         note_taking("...cifar generation re-normalized and saved. ")
     save_image(
@@ -203,9 +232,6 @@ def initialze_run(hparams, args):
     The helper function to initialize experiment. Mostly just book keeping.
     Naming convention: everything ending with "dir" ends with "/"
     Directory naming logic: 
-        - If train_first, experiment will first run training algorithm, and then 
-            run RD evaluation, 
-        - If not in train_first mode, only RD evaluation will be run. 
         - If additional experiment name(e_name) is specified, then append that at the end
             this additional name is useful when one wishes to conduct multiple runs under the same hparam
             - Note taht e_name better only be used for testing purposes. It's a good practice to always 
@@ -216,7 +242,6 @@ def initialze_run(hparams, args):
         args: dictionary of keyword arguments. 
 
     """
-
     results_dir = hparams.output_root_dir + "/results_out/"
     backup_dir = hparams.output_root_dir + "/result_backup/"
     init_dir(backup_dir)
@@ -224,9 +249,10 @@ def initialze_run(hparams, args):
         for subgroup in hparams.group_list:
             results_dir += (subgroup + "/")
 
-    results_dir = results_dir + args.hparam_set + (
-        "_" + str(args.e_name) if args.e_name is not None else "") + "/"
-    init_dir(results_dir)
+    results_dir = results_dir + args.hparam_set + ("_" + str(args.e_name)
+                                                   if args.e_name is not None
+                                                   else "") + "/"
+    init_dir(results_dir, overwrite=hparams.overwrite)
     hparams.save(results_dir + 'init_hparams.json')
     hparams.save(backup_dir + args.hparam_set + '_hparams.json')
 
@@ -247,28 +273,27 @@ def initialze_run(hparams, args):
         for subgroup in hparams.group_list:
             tboard_dir += (subgroup + "/")
     init_dir(tboard_dir)
-    tboard_path = tboard_dir + (args.hparam_set + (
-        "_" + str(args.e_name) if args.e_name is not None else ""))
+    tboard_path = tboard_dir + (args.hparam_set +
+                                ("_" + str(args.e_name)
+                                 if args.e_name is not None else ""))
 
     writer = SummaryWriter(tboard_path)
     checkpoint_dir = hparams.checkpoint_root_dir + "/checkpoints/" + (
-        (args.hparam_set +
-         ("_" + str(args.e_name) if args.e_name is not None else "")) if
-        (hparams.train_first or
-         hparams.load_hparam_name is None) else hparams.load_hparam_name) + "/"
+        (args.hparam_set + ("_" + str(args.e_name)
+                            if args.e_name is not None else ""))
+        if (hparams.load_checkpoint_name is None) else
+        hparams.load_checkpoint_name) + "/"
 
     # cuda init
     hparams.cuda = hparams.cuda and torch.cuda.is_available()
     hparams.device = torch.device("cuda" if hparams.cuda else "cpu")
     if hparams.double_precision:
-        hparams.add_hparam(
-            "dtype",
-            torch.cuda.DoubleTensor if hparams.cuda else torch.DoubleTensor)
+        hparams.add_hparam("dtype", torch.cuda.DoubleTensor
+                           if hparams.cuda else torch.DoubleTensor)
         hparams.add_hparam("tensor_type", torch.float64)
     else:
-        hparams.add_hparam(
-            "dtype",
-            torch.cuda.FloatTensor if hparams.cuda else torch.FloatTensor)
+        hparams.add_hparam("dtype", torch.cuda.FloatTensor
+                           if hparams.cuda else torch.FloatTensor)
         hparams.add_hparam("tensor_type", torch.float32)
     if hparams.verbose:
         note_taking("torch.cuda.current_device() {}".format(
@@ -301,21 +326,12 @@ def initialze_run(hparams, args):
     hparams.e_name = args.e_name
     logging(vars(args), hparams.to_dict(), results_dir, dir_path)
 
-    if hparams.train_first:
-        if not os.path.exists(checkpoint_dir):
-            hparams.resume_training = False
-            os.makedirs(checkpoint_dir, 0o777)
-            os.chmod(checkpoint_dir, 0o777)
-            note_taking(
-                "....initialized checkpoint_dir: {}".format(checkpoint_dir))
-        if hparams.resume_training:
-            hparams.checkpoint_path = get_chechpoint_path(
-                hparams
-            ) if hparams.specific_model_path is None else hparams.specific_model_path
-    else:
+    if os.path.exists(checkpoint_dir) and not hparams.overwrite:
         hparams.checkpoint_path = get_chechpoint_path(
             hparams
         ) if hparams.specific_model_path is None else hparams.specific_model_path
+    else:
+        init_dir(checkpoint_dir, overwrite=hparams.overwrite)
 
     if hparams.verbose:
         print_hparams(hparams.to_dict(), None)
@@ -443,8 +459,8 @@ def plot_both(hparams, betas, analytic_rate_list, analytic_distortion_list,
      """
 
     if hparams.distortion_limit is not None:
-        cut_idx = (np.abs(np.array(distortion_list) -
-                          hparams.distortion_limit)).argmin()
+        cut_idx = (np.abs(np.array(distortion_list) - hparams.distortion_limit)
+                  ).argmin()
         note_taking("AIS Distortion limit={}, at beta={} at index {}".format(
             hparams.distortion_limit, betas[cut_idx], cut_idx))
         distortion_list = distortion_list[cut_idx:]
@@ -506,7 +522,7 @@ def plot_both_baseline(hparams, analytic_rate_list, analytic_distortion_list,
 
 def get_chechpoint_path(hparams):
     """
-    generate appropriate checkpointing path based on checkpoitn step. 
+    generate appropriate checkpointing path based on checkpoint step. 
     """
     chkt_step = int(hparams.chkt_step)
     max_step = 0
@@ -521,17 +537,19 @@ def get_chechpoint_path(hparams):
                 max_step = x
                 latest_ckpt = f
 
-    if chkt_step == -2:
+    checkpoint_path = None
+    if chkt_step == -2 and best_ckpt:
         checkpoint_path = best_ckpt
-        note_taking("the best Checkpoint detected: {}".format(checkpoint_path).
-                    center(80))
-    elif chkt_step == -1:
+        note_taking("the best Checkpoint detected: {}".format(checkpoint_path)
+                    .center(80))
+    elif chkt_step == -1 and latest_ckpt:
         checkpoint_path = latest_ckpt
-        note_taking("the latest Checkpoint detected: {}".format(
-            checkpoint_path).center(80))
+        note_taking("the latest Checkpoint detected: {}".format(checkpoint_path)
+                    .center(80))
 
-    note_taking(
-        "about to load checkpoint from: {}".format(checkpoint_path).center(80))
+    if checkpoint_path:
+        note_taking("about to load checkpoint from: {}".format(checkpoint_path)
+                    .center(80))
     return checkpoint_path
 
 
@@ -547,7 +565,6 @@ def load_checkpoint(
     note_taking("Loading checkpoint from: {}".format(path))
     checkpoint = torch.load(path)
     model.load_state_dict(checkpoint["state_dict"])
-    step = checkpoint["global_step"]
     epoch = checkpoint["global_epoch"]
     test_loss_list = checkpoint["test_loss_list"]
     if optimizer is not None:
@@ -565,23 +582,13 @@ def load_checkpoint(
         )
         x_var = 1.0
     note_taking(
-        "Loaded checkpoint from {} at epoch {}(Step {}), and the test loss was {},decoder variance is {})"
-        .format(path, epoch, step, test_loss_list[-1], x_var))
-    return step, epoch, test_loss_list
-
-
-def load_user_checkpoint(path, model):
-    '''
-    Load model checkpoint
-    '''
-    note_taking("Loading checkpoint from: {}".format(path))
-    checkpoint = torch.load(path)
-    model.load_state_dict(checkpoint["state_dict"])
-    note_taking("Loaded checkpoint from {}.".format(path))
+        "Loaded checkpoint from {} at epoch {}, and the test loss was {},decoder variance is {})"
+        .format(path, epoch, test_loss_list[-1], x_var))
+    return epoch, test_loss_list
 
 
 def save_checkpoint(checkpoint_path, optimizer, save_optimizer_state, model,
-                    hparams, test_loss_list):
+                    epoch, test_loss_list):
     '''
     Save the pytorch model with optimizer saving support
     '''
@@ -590,7 +597,6 @@ def save_checkpoint(checkpoint_path, optimizer, save_optimizer_state, model,
     torch.save({
         "state_dict": model.state_dict(),
         "optimizer": optimizer_state,
-        "global_step": hparams.step,
-        "global_epoch": hparams.epoch,
+        "global_epoch": epoch,
         "test_loss_list": test_loss_list
     }, checkpoint_path)
