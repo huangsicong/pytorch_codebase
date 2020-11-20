@@ -121,6 +121,6 @@ The rest: normally the below settings do not need to be changed.
   - `cuda`: (boolean) Whether or not to use CUDA. 
   - `verbose`: (boolean) Verbose or not for logging and print statements. 
   - `random_seed`: (int) Random seed.  
-  - `n_test_batch`: (int) Number of batch you want to test on during training or IWAE. During training it'll test on a held-out validation set. 
+  - `n_val_batch`: (int) Number of batch you want to test on during training or IWAE. During training it'll test on a held-out validation set. 
  
 

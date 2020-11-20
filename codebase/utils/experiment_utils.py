@@ -566,7 +566,7 @@ def load_checkpoint(
     checkpoint = torch.load(path)
     model.load_state_dict(checkpoint["state_dict"])
     epoch = checkpoint["global_epoch"]
-    test_loss_list = checkpoint["test_loss_list"]
+    validation_loss_list = checkpoint["validation_loss_list"]
     if optimizer is not None:
         if not reset_optimizer:
             optimizer_state = checkpoint["optimizer"]
@@ -582,13 +582,13 @@ def load_checkpoint(
         )
         x_var = 1.0
     note_taking(
-        "Loaded checkpoint from {} at epoch {}, and the test loss was {},decoder variance is {})"
-        .format(path, epoch, test_loss_list[-1], x_var))
-    return epoch, test_loss_list
+        "Loaded checkpoint from {} at epoch {}, and the validation loss was {}, decoder variance is {})"
+        .format(path, epoch, validation_loss_list[-1], x_var))
+    return epoch, validation_loss_list
 
 
 def save_checkpoint(checkpoint_path, optimizer, save_optimizer_state, model,
-                    epoch, test_loss_list):
+                    epoch, validation_loss_list):
     '''
     Save the pytorch model with optimizer saving support
     '''
@@ -598,5 +598,5 @@ def save_checkpoint(checkpoint_path, optimizer, save_optimizer_state, model,
         "state_dict": model.state_dict(),
         "optimizer": optimizer_state,
         "global_epoch": epoch,
-        "test_loss_list": test_loss_list
+        "validation_loss_list": validation_loss_list
     }, checkpoint_path)

@@ -17,13 +17,15 @@ def unfreeze_model(model):
 
 
 """
-    The children classes for trainers must only take writer and hparam as parameters in 
+The children classes for trainers must only take writer and hparam as parameters in 
     their init function
 """
 
-
 class VAETrainer(Trainerbase):
-
+    """
+    A VAE trainer that inherits from the trainerbase,
+    it over writes the run_batch function with the ELBO loss
+    """
     def __init__(self, writer, hparams):
         model = get_model(hparams).to(hparams.device)
         params_list = []
@@ -42,6 +44,10 @@ class VAETrainer(Trainerbase):
         super().__init__(model, optimizer, writer, hparams, sample_images)
 
     def run_batch(self, data, istrain, to_save_recon=False):
+        """
+        Runs a batch of training or test data and plot the reconstruction
+        in between
+        """
         if istrain:
             self.optimizer.zero_grad()
             recon_batch, elbo, _, _, _, _, _ = self.model(data)

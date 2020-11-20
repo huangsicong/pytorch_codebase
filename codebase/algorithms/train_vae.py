@@ -73,11 +73,11 @@ def test_epoch(epoch,
                         ])
                         save_image(
                             comparison.cpu(),
-                            hparams.messenger.image_dir +
-                            ('best_' if best else '') + 'reconstruction_' +
-                            str(epoch) + '.png',
+                            hparams.messenger.image_dir + ('best_'
+                                                           if best else '') +
+                            'reconstruction_' + str(epoch) + '.png',
                             nrow=n)
-            if i == hparams.n_test_batch:
+            if i == hparams.n_val_batch:
                 break
 
     torch.set_default_tensor_type(hparams.dtype)
@@ -135,9 +135,9 @@ def train_and_test(test_loss_list, model, optimizer, writer, hparams):
                 if do_logging:
                     sample_images(hparams, model, epoch)
 
-    checkpoint_path = os.path.join(
-        hparams.messenger.checkpoint_dir, "checkpoint_epoch{}.pth".format(
-            int(hparams.epoch)))
+    checkpoint_path = os.path.join(hparams.messenger.checkpoint_dir,
+                                   "checkpoint_epoch{}.pth".format(
+                                       int(hparams.epoch)))
     save_checkpoint(
         checkpoint_path=checkpoint_path,
         optimizer=optimizer,

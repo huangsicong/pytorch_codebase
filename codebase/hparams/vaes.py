@@ -23,10 +23,11 @@ def vae_experiment():
     Hparam.checkpointing_freq = 100
     Hparam.learning_rate = 1e-4
     Hparam.resume_training = True
-    Hparam.n_test_batch = 10
+    Hparam.n_val_batch = 10
     Hparam.original_experiment = True
     Hparam.model_name = "deep_vae"
-    Hparam.train_print_freq = 50
+    # Hparam.train_print_freq = 50
+    Hparam.train_print_freq = 1
     return Hparam
 
 
@@ -36,7 +37,8 @@ def dcvae_experiment():
     Hparam.learning_rate = 3e-4
     Hparam.weight_decay = 3e-5
     Hparam.model_train.batch_size = 128
-    Hparam.model_train.epochs = 200
+    # Hparam.model_train.epochs = 200
+    Hparam.model_train.epochs = 3
     Hparam.model_train.z_size = 100
     Hparam.model_name = "dc_vae"
     Hparam.gauss_weight_init = True
