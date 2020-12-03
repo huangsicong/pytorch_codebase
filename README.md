@@ -23,9 +23,9 @@ Dependencies are listed in requirement.txt.
 Lite tracer can be found [here](https://github.com/BorealisAI/lite_tracer).
 
 There are only 3 argparse arguments: 
-- `hparam_set`: (str) This is name label of the experiment, and it point to a an Hparam object, the set of all hyper parameters associated with this experiment. They are registered under [codebase/hparams](codebase/hparams).
-- `e_name`: (str) "Extra name". Used to add an extra suffix after the hparam_set in the name of the experiment. This is used to run another copy (for testing purposes for example) of the same experiment defined by hparam_set without having to create the same hparam_set. The experiment will be named as "`hparam_set_e_name`". Do not set this argument unless you want an extra suffix.
--  `overwrite`: (bool) When set to true, the codebase will overwrite the output from previous experiment under the same name. 
+- `hparam_set`: (str) This is label of the experiment, and it point to a set of hyper parameters associated with this experiment, organzied by an Hparam object. They are registered under [codebase/hparams](codebase/hparams).
+- `e_name`: (str) "Extra name". Used to add an extra suffix after the hparam_set in the name of the experiment. This is used to run another copy (for testing purposes for example) of the experiment defined by hparam_set without having to create the same hparam_set. 
+- `overwrite` (boolean): if set to true it will overwrite the previous result directory of the same experiment if it exists
 
 The configuration for each experiment is defined by an Hparam object registered in  [codebase/hparams](codebase/hparams). The default value for an undefined field is **None**. The Hparam object is hierarchical and compositional for modularity. 
 
@@ -45,7 +45,7 @@ Note that in this codebase the AIS and rate distortion code was taken out, so in
 
 - Set the paths. 
   
-  Make sure to properly set all the directories and paths accordingly, including the output directories **output_root_dir**, the data directory **data_dir** and the checkpoint directory **checkpoint_root_dir** in the [codebase/hparams/defaults.py](codebase/hparams/defaults.py). Note that the datasets (MNIST and CIFAR10) will be automatically downloaded if you don't have then in the **data_dir** the already. For all the sbatch files, make sure to set the working directory accordingly (to where this repo is cloned) in each command as well. 
+  Make sure to properly set all the directories and paths accordingly, including the output directories **output_root_dir**, the data directory **data_dir** and the checkpoint directory **checkpoint_root_dir** in the [codebase/hparams/defaults.py](codebase/hparams/defaults.py). Note that the datasets will be automatically downloaded if you don't have then in the **data_dir** the already. For all the sbatch files, make sure to set the working directory accordingly (to where this repo is cloned) in each command as well. 
 
 - Get the checkpoints. 
   
@@ -64,21 +64,20 @@ Note that in this codebase the AIS and rate distortion code was taken out, so in
   sbatch FILENAME.sh
   ```
   Notice that if you don't already have the datasets downloaded, running multiple runs concurrently might cause interference of the data loading/downloading processes. So a good practice is to let the data downloading process finish before starting another runs related to the same dataset. 
-- Plotting script <br />
-  [codebase/plot.py](codebase/plot.py) is an example of how you can put results in different runs together.  The script can automatically extract data based on the experiment name. Set the **output_root_dir** in your plotting hparam to be the same as the **output_root_dir** in [codebase/hparams/defaults.py](codebase/hparams/defaults.py) which was set in the beginning to customize the plots.
+- Ploting script
+  You will need to modify [codebase/plot.py](codebase/plot.py) for your own purposes. The idea here is that the script could automatically extract data based on the experiment name. Set the **output_root_dir** in your plotting hparam to be the same as the **output_root_dir** in [codebase/hparams/defaults.py](codebase/hparams/defaults.py) which was set in the beginning to custimize the plots.
   Then run **icml_plots.sh**.
 
 
 
 ## Test your own generative models. 
-The codebase is also modularized for testing your own decoder-based generative models. You need to register your model under [codebase/models/user_models](codebase/models/user_models), and register the Hparam object at [codebase/hparams/user_models](codebase/models/user_models). Your model should come with its decoder variance model.x_logvar as a scalar or vector tensor. Set **specific_model_path** to the path of your decoder weights.
+The codebase is also modularized for testing your own decoder-based generative models. You need to register your model under [codebase/models/user_models.py](codebase/models/user_models.py), and register the Hparam object at [codebase/hparams/user_hparams.py](codebase/hparams/user_hparams.py). Your model should come with its decoder variance model.x_logvar as a scalar or vector tensor. Set **specific_model_path** to the path of your decoder weights.
 
 ### PyTorch: 
 If the generative models is trained in PyTorch, the checkpoint should contain the key "state_dict" as the weights of the model.
 
 ### Others:
-If the generative models is trained in other frameworks, you'll need to manually bridge and load the weights. For example, the AAEs were trained in tensorflow, with the weights saved as numpy, and then loaded as nn.Parameter in PyTorch. Refer to[codebase/utils/aad_utils](codebase/utils/aad_utils) for more details.
-  
+If the generative models is trained in other framewords, you'll need to manuually bridge and load the weights. For example, the AAEs were trained in tensorflow, with the weights saved as numpy, and then loaded as nn.Parameter in PyTorch. Refer to [codebase/utils/aae_utils.py](codebase/utils/aae_utils.py) for more details.
 
 ## Detailed Experimental Settings
 More details on how to control experimental settings can be found below. 
@@ -109,10 +108,8 @@ Sub-hparams:
   - `x_var`: (float) Initial decoder variance.
 
 **dataset** sub-Hparam
-  - `data_name`: (str) The name of the dataset to be used.
-  - `train_loader`: (str) The name of the training loader to be used. 
-  - `eval_train_loader`: (str) The loader for "train" in the **rd_data_list**. 
-  - `eval_test_loader`: (str) The loader for "test" in the **rd_data_list**. 
+  - `name`: (str) The name of the dataset. 
+  - `train`: (str) Load the train set if True, test set otherwise. 
   - `input_dims`: (list) A list specifying the input dimensions. 
   - `input_vector_length`: (int) The product of **input_dims**.
   
@@ -122,5 +119,4 @@ The rest: normally the below settings do not need to be changed.
   - `verbose`: (boolean) Verbose or not for logging and print statements. 
   - `random_seed`: (int) Random seed.  
   - `n_val_batch`: (int) Number of batch you want to test on during training or IWAE. During training it'll test on a held-out validation set. 
- 
-
+  - `no_workers`: (int) number of processes to load our data 

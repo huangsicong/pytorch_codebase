@@ -7,34 +7,17 @@
 
 #!/usr/bin/env python3
 
-from .registry import get_loader
+from .loaderbase import LoaderBase
 from ..utils.experiment_utils import note_taking
 from ..models.simulate import get_simulate_data
 import torch
-
-
-def load_training_data(hparams):
-    train_loader, test_loader = get_loader(
-        hparams.dataset.train_loader, hparams.model_train.batch_size, hparams)
-
-    return train_loader, test_loader
 
 
 def load_rd_data(model, hparams, data):
     """ 
     To speed up rate-distorion computation, only supports 1-batch. 
      """
-
-    if data == "train":
-        rd_loader = get_loader(hparams.dataset.eval_train_loader,
-                               hparams.rd.batch_size, hparams)
-
-    elif data == "test":
-        rd_loader = get_loader(hparams.dataset.eval_test_loader,
-                               hparams.rd.batch_size, hparams)
-
-    elif data == "simulate":
-
+    if data == "simulate":
         if hparams.rd.simulate_dir is None:
             rd_loader = get_simulate_data(
                 model,
@@ -63,6 +46,13 @@ def load_rd_data(model, hparams, data):
             z = z_tensor[:hparams.rd.batch_size, :]
             rd_loader.append((x, z))
 
+    else:
+        loader = LoaderBase(hparams)
+        istrain = (data == "train")
+        rd_loader = loader.get_loader(
+            hparams.dataset.name,
+            istrain=istrain,
+            overwrite_batch_size=hparams.rd.batch_size)
     return rd_loader
 
 

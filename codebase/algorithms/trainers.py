@@ -1,6 +1,6 @@
 from .trainerbase import Trainerbase
 from ..models.registry import get_model
-from ..utils.experiment_utils import sample_images, save_recon
+from ..utils.experiment_utils import latent_image_sample, save_recon
 import torch
 from torch import optim
 
@@ -21,11 +21,13 @@ The children classes for trainers must only take writer and hparam as parameters
     their init function
 """
 
+
 class VAETrainer(Trainerbase):
     """
     A VAE trainer that inherits from the trainerbase,
     it over writes the run_batch function with the ELBO loss
     """
+
     def __init__(self, writer, hparams):
         model = get_model(hparams).to(hparams.device)
         params_list = []
@@ -41,7 +43,7 @@ class VAETrainer(Trainerbase):
             params_list,
             lr=hparams.learning_rate,
             weight_decay=hparams.weight_decay if hparams.weight_decay else 0)
-        super().__init__(model, optimizer, writer, hparams, sample_images)
+        super().__init__(model, optimizer, writer, hparams, latent_image_sample)
 
     def run_batch(self, data, istrain, to_save_recon=False):
         """

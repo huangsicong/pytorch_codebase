@@ -9,7 +9,7 @@
 
 import torch
 import numpy as np
-from ..utils.experiment_utils import note_taking, save_checkpoint, sample_images, get_chechpoint_path, load_checkpoint
+from ..utils.experiment_utils import note_taking, save_checkpoint, latent_image_sample, get_chechpoint_path, load_checkpoint
 from torchvision.utils import save_image
 from ..data.load_data import load_training_data
 import os

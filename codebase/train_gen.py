@@ -70,7 +70,7 @@ def main(writer, hparams):
             requires_grad=False)
         note_taking("NOTICE! model.x_logvar is overwrited: {}".format(
             model.x_logvar))
-    sample_images(hparams, model, hparams.epoch, best=False)
+    latent_image_sample(hparams, model, hparams.epoch, best=False)
     x_var = None
     if model.x_logvar:
         x_var = torch.exp(model.x_logvar).detach().cpu().numpy().item()

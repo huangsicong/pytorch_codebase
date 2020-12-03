@@ -25,7 +25,7 @@ def get_encoder(hparams):
     return Encoder(hparams)
 
 
-@register("tanh_linear_vae_encoder")
+@register("fully3_vae_encoder")
 def get_encoder(hparams):
 
     class Encoder(nn.Module):

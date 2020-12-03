@@ -14,11 +14,8 @@ from .hparam import Hparam as hp
 def mnist():
     """ dataset """
     return hp(
-        data_name="mnist",
-        train_loader="mnist_train_valid",
-        test_loader="mnist_test",
-        eval_train_loader="mnist_eval_train",
-        eval_test_loader="mnist_eval_test",
+        name="mnist",
+        train=True,
         input_dims=[1, 28, 28],
         input_vector_length=784)
 
@@ -26,11 +23,8 @@ def mnist():
 def FashionMNIST():
     """ dataset """
     return hp(
-        data_name="FashionMNIST",
-        train_loader="FashionMNIST_train_valid",
-        test_loader="FashionMNIST_test",
-        eval_train_loader="FashionMNIST_eval_train",
-        eval_test_loader="FashionMNIST_eval_test",
+        name="fmnist",
+        train=True,
         input_dims=[1, 28, 28],
         input_vector_length=784)
 
@@ -38,11 +32,8 @@ def FashionMNIST():
 def cifar10():
     """ dataset """
     return hp(
-        data_name="cifar10",
-        train_loader="cifar_train_valid",
-        test_loader="CIFAR10_test",
-        eval_train_loader="CIFAR10_eval_train",
-        eval_test_loader="CIFAR10_eval_test",
+        name="cifar10",
+        train=True,
         input_dims=[3, 32, 32],
         input_vector_length=3072,
         normalize=[0.5, 0.5])

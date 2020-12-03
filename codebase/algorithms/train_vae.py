@@ -9,7 +9,7 @@
 
 import torch
 import numpy as np
-from ..utils.experiment_utils import note_taking, save_checkpoint, sample_images, get_chechpoint_path, load_checkpoint, get_cpu_type
+from ..utils.experiment_utils import note_taking, save_checkpoint, latent_image_sample, get_chechpoint_path, load_checkpoint, get_cpu_type
 from torchvision.utils import save_image
 from ..data.load_data import load_training_data
 from tqdm import tqdm
@@ -133,7 +133,7 @@ def train_and_test(test_loss_list, model, optimizer, writer, hparams):
                     note_taking(
                         "Saving checkpoint to: {}".format(checkpoint_path))
                 if do_logging:
-                    sample_images(hparams, model, epoch)
+                    latent_image_sample(hparams, model, epoch)
 
     checkpoint_path = os.path.join(hparams.messenger.checkpoint_dir,
                                    "checkpoint_epoch{}.pth".format(
@@ -163,6 +163,6 @@ def train_and_test(test_loss_list, model, optimizer, writer, hparams):
         optimizer=None,
         reset_optimizer=False,
         model=model)
-    sample_images(hparams, model, hparams.epoch, best=True)
+    latent_image_sample(hparams, model, hparams.epoch, best=True)
 
     return model

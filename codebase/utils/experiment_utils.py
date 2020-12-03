@@ -179,7 +179,7 @@ def save_recon(data, recon, hparams, model, epoch, best=False):
         nrow=n)
 
 
-def sample_images(hparams,
+def latent_image_sample(hparams,
                   model,
                   epoch,
                   best=False,

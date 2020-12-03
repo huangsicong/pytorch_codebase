@@ -7,8 +7,6 @@
 
 #!/usr/bin/env python3
 
-__all__ = ["mnist", "fmnist", "cifar"]
+__all__ = ["datasets"]
 
-from .mnist import *
-from .fmnist import *
-from .cifar import *
+from .datasets import *
