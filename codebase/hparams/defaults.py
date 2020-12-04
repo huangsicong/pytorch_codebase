@@ -11,31 +11,43 @@ from .registry import register
 from .hparam import Hparam as hp
 
 
-def mnist():
+def MNIST():
+    """ dataset """
+    return hp(name="mnist", train=True, input_dims=[1, 28, 28])
+
+
+def KMNIST():
+    """ dataset """
+    return hp(name="kmnist", train=True, input_dims=[1, 28, 28])
+
+
+def SVHN():
     """ dataset """
     return hp(
-        name="mnist",
-        train=True,
-        input_dims=[1, 28, 28],
-        input_vector_length=784)
+        name="svhn", train=True, input_dims=[3, 32, 32], normalize=[0.5, 0.5])
 
 
 def FashionMNIST():
     """ dataset """
-    return hp(
-        name="fmnist",
-        train=True,
-        input_dims=[1, 28, 28],
-        input_vector_length=784)
+    return hp(name="fmnist", train=True, input_dims=[1, 28, 28])
 
 
-def cifar10():
+def CIFAR10():
     """ dataset """
     return hp(
         name="cifar10",
         train=True,
         input_dims=[3, 32, 32],
-        input_vector_length=3072,
+        normalize=[0.5, 0.5])
+
+
+def CELEBA():
+    """ dataset """
+    return hp(
+        name="celeba",
+        val_name="celeba_valid",
+        train=True,
+        input_dims=[3, 218, 178],
         normalize=[0.5, 0.5])
 
 
@@ -60,7 +72,7 @@ def default_experiment():
         output_root_dir="./runoutputs",
         checkpoint_root_dir="./runoutputs",
         data_dir="./datasets",
-        dataset=mnist(),
+        dataset=MNIST(),
         cuda=True,
         verbose=True,
         random_seed=6,

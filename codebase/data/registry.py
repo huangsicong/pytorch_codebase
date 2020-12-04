@@ -20,5 +20,5 @@ def register(name):
     return add_to_dict
 
 
-def get_dset(dataset_name, data_dir, transforms, train):
-    return _LOADERS[dataset_name](data_dir, transforms, train)
+def get_dset(dataset_name, hparams, transforms, train):
+    return _LOADERS[dataset_name](hparams, transforms, train)

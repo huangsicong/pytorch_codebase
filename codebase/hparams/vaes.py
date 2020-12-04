@@ -42,7 +42,7 @@ def dcvae_experiment():
     Hparam.gauss_weight_init = True
     Hparam.encoder_name = "conv_encoder"
     Hparam.decoder_name = "conv_decoder"
-    Hparam.group_list = ["DCVAE", "randomseed_1"]
+    Hparam.group_list = ["DCVAE"]
     return Hparam
 
 
@@ -65,13 +65,47 @@ def dcvae():
     return Hparam
 
 
+@register("dcvae100_kmnist")
+def dcvae():
+    Hparam = dcvae_experiment()
+    Hparam.dataset = KMNIST()
+    Hparam.dataset.input_dims = (1, 32, 32)
+    Hparam.dataset.normalize = None
+    Hparam.dataset.keep_scale = False
+    return Hparam
+
+
 @register("dcvae100_cifar10")
 def dcvae():
     Hparam = dcvae_experiment()
-    Hparam.dataset = cifar10()  #this also sets dim to (3,32,32)
+    Hparam.dataset = CIFAR10()  #this also sets dim to (3,32,32)
     Hparam.dataset.input_dims = (3, 32, 32)
     Hparam.dataset.normalize = None
     Hparam.conv_params.nf = 64
     Hparam.conv_params.nc = 3
     Hparam.dataset.keep_scale = False
+    return Hparam
+
+
+@register("dcvae100_svhn")
+def dcvae():
+    Hparam = dcvae_experiment()
+    Hparam.dataset = SVHN()  #this also sets dim to (3,32,32)
+    Hparam.dataset.input_dims = (3, 32, 32)
+    Hparam.dataset.normalize = None
+    Hparam.conv_params.nf = 64
+    Hparam.conv_params.nc = 3
+    Hparam.dataset.keep_scale = False
+    return Hparam
+
+
+@register("dcvae100_celeba")
+def dcvae():
+    Hparam = dcvae_experiment()
+    Hparam.dataset = CELEBA()
+    Hparam.conv_params.nf = 64
+    Hparam.conv_params.nc = 3
+    Hparam.dataset.normalize = None
+    Hparam.dataset.keep_scale = False
+    Hparam.dataset.input_dims = (3, 32, 32)
     return Hparam

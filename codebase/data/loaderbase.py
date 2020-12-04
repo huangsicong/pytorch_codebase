@@ -3,10 +3,11 @@ from torchvision import transforms
 from torch.utils.data import random_split
 from .registry import get_dset
 from ..utils.experiment_utils import get_cpu_type
+from ..utils.load_utils import split_data
 
 
 class LoaderBase:
-    """Base calss for all objects that manage dataloaders
+    """Base class for all objects that manage dataloaders
 
     Arguments:
         hparams: an instance of the Hparam object
@@ -66,7 +67,9 @@ class LoaderBase:
             overwrite_batch_size (int): batch size for the loader,
                 can be None to use hparam setting
         """
-        dset = get_dset(name, self.hparams.data_dir, self.transform, istrain)
+        torch.set_default_tensor_type(get_cpu_type(self.hparams))
+        dset = get_dset(name, self.hparams, self.transform, istrain)
+        torch.set_default_tensor_type(self.hparams.dtype)
         return self._get_loader(
             dset, shuffle=shuffle, overwrite_batch_size=overwrite_batch_size)
 
@@ -78,15 +81,15 @@ class LoaderBase:
                 range between 0 and 1
             shuffle (boolean): to shuffle the dataset when loading
         """
-        train_dset = get_dset(self.hparams.dataset.name, self.hparams.data_dir,
-                              self.transform, True)
-        val_length = int(len(train_dset) * percent_val)
-        train_length = len(train_dset) - val_length
         torch.set_default_tensor_type(get_cpu_type(self.hparams))
-        train_dset, val_dset = random_split(
-            train_dset, (train_length, val_length),
-            generator=torch.Generator(device="cpu").manual_seed(
-                self.hparams.random_seed))
+        train_dset = get_dset(self.hparams.dataset.name, self.hparams,
+                              self.transform, True)
+        if self.hparams.dataset.val_name:
+            val_dset = get_dset(self.hparams.dataset.val_name, self.hparams,
+                                self.transform, True)
+        else:
+            train_dset, val_dset = split_data(self.hparams, train_dset,
+                                              percent_val)
         torch.set_default_tensor_type(self.hparams.dtype)
         return self._get_loader(
             train_dset, shuffle=shuffle), self._get_loader(

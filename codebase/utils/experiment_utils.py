@@ -62,6 +62,9 @@ def set_random_seed(i):
     np.random.seed(i)
     torch.manual_seed(i)
     torch.cuda.manual_seed(i)
+    torch.cuda.manual_seed_all(i)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
 
 
 def compute_data_stats(loader, data):
@@ -180,12 +183,12 @@ def save_recon(data, recon, hparams, model, epoch, best=False):
 
 
 def latent_image_sample(hparams,
-                  model,
-                  epoch,
-                  best=False,
-                  prior_dist=None,
-                  name=None,
-                  sample_z=None):
+                        model,
+                        epoch,
+                        best=False,
+                        prior_dist=None,
+                        name=None,
+                        sample_z=None):
     if sample_z is None:
         sample = torch.randn(64, hparams.model_train.z_size).to(
             device=hparams.device, dtype=hparams.tensor_type)
@@ -302,6 +305,11 @@ def initialze_run(hparams, args):
         note_taking("hparams.tensor_type {}".format(hparams.tensor_type))
     hparams.model_train.add_hparam("dtype", hparams.dtype)
     hparams.model_train.add_hparam("tensor_type", hparams.tensor_type)
+    if hparams.dataset.input_dims:
+        input_vector_length = 1
+        for dim in hparams.dataset.input_dims:
+            input_vector_length *= dim
+        hparams.dataset.input_vector_length = input_vector_length
     torch.set_default_tensor_type(hparams.dtype)
 
     # init hparams

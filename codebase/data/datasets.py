@@ -7,29 +7,71 @@ Note that each function must return a pytorch dataset to be loaded into dataload
 """
 
 
+def get_str(train):
+    if train:
+        split_str = "train"
+    else:
+        split_str = "test"
+    return split_str
+
+
 @register("cifar10")
-def get_dset(data_dir, transform, train):
+def get_dset(hparams, transform, train):
     dset = datasets.CIFAR10(
-        data_dir, train=train, download=True, transform=transform)
+        hparams.data_dir, train=train, download=True, transform=transform)
     return dset
 
 
 @register("mnist")
-def get_dset(data_dir, transform, train):
+def get_dset(hparams, transform, train):
     dset = datasets.MNIST(
-        data_dir, train=train, download=True, transform=transform)
+        hparams.data_dir, train=train, download=True, transform=transform)
     return dset
 
 
 @register("fmnist")
-def get_dset(data_dir, transform, train):
+def get_dset(hparams, transform, train):
     dset = datasets.FashionMNIST(
-        data_dir, train=train, download=True, transform=transform)
+        hparams.data_dir, train=train, download=True, transform=transform)
     return dset
 
 
 @register("cifar100")
-def get_dset(data_dir, transform, train):
+def get_dset(hparams, transform, train):
     dset = datasets.CIFAR100(
-        data_dir, train=train, download=True, transform=transform)
+        hparams.data_dir, train=train, download=True, transform=transform)
+    return dset
+
+
+@register("svhn")
+def get_dset(hparams, transform, train):
+    dset = datasets.SVHN(
+        hparams.data_dir,
+        split=get_str(train),
+        download=True,
+        transform=transform)
+    return dset
+
+
+@register("kmnist")
+def get_dset(hparams, transform, train):
+    dset = datasets.KMNIST(
+        hparams.data_dir, train=train, download=True, transform=transform)
+    return dset
+
+
+@register("celeba")
+def get_dset(hparams, transform, train):
+    dset = datasets.CelebA(
+        hparams.data_dir,
+        split=get_str(train),
+        download=True,
+        transform=transform)
+    return dset
+
+
+@register("celeba_valid")
+def get_dset(hparams, transform, train):
+    dset = datasets.CelebA(
+        hparams.data_dir, split='valid', download=True, transform=transform)
     return dset
